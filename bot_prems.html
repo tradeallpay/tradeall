@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TradeAll Scanner — Профессиональный сканер для дейтрейдинга | Bybit</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
+    <style>
+        :root {
+            --bg: #0a0a0c;
+            --bg-card: #111115;
+            --bg-card-hover: #181a20;
+            --gold: #d4a843;
+            --gold-light: #f0cc6a;
+            --green: #00d4a6;
+            --green-bright: #00ffc8;
+            --red: #ff4757;
+            --blue: #4a9eff;
+            --text: #e0e0e0;
+            --text-dim: #8a8a8a;
+            --border: #1e1e24;
+            --radius: 16px;
+            --radius-sm: 10px;
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Фон */
+        .bg-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.012) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.012) 1px, transparent 1px);
+            background-size: 60px 60px;
+            animation: gridPulse 8s ease-in-out infinite;
+        }
+
+        @keyframes gridPulse {
+            0%,
+            100% {
+                opacity: 0.5;
+            }
+            50% {
+                opacity: 1;
+            }
+        }
+
+        .bg-glow-top {
+            position: fixed;
+            top: -300px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 800px;
+            height: 600px;
+            background: radial-gradient(ellipse at center, rgba(0, 212, 166, 0.06) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+            animation: glowFloat 8s ease-in-out infinite;
+        }
+
+        .bg-glow-bottom {
+            position: fixed;
+            bottom: -400px;
+            right: -200px;
+            width: 900px;
+            height: 700px;
+            background: radial-gradient(ellipse at center, rgba(74, 158, 255, 0.04) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+            animation: glowFloat 10s ease-in-out infinite reverse;
+        }
+
+        @keyframes glowFloat {
+            0%,
+            100% {
+                transform: translateX(-50%) translateY(0);
+            }
+            50% {
+                transform: translateX(-50%) translateY(40px);
+            }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Шапка */
+        header {
+            padding: 18px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            background: rgba(10, 10, 12, 0.85);
+            border-bottom: 1px solid var(--border);
+            transition: var(--transition);
+        }
+
+        header.scrolled {
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .header-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 14px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, var(--green), #00a87e);
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            box-shadow: 0 4px 20px rgba(0, 212, 166, 0.3);
+        }
+
+        .logo-text {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: -0.5px;
+        }
+
+        .logo-text span {
+            color: var(--green);
+        }
+
+        nav {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        nav a {
+            color: var(--text-dim);
+            text-decoration: none;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: var(--transition);
+            white-space: nowrap;
+        }
+
+        nav a:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 11px 22px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-decoration: none;
+            cursor: pointer;
+            border: none;
+            transition: var(--transition);
+            white-space: nowrap;
+        }
+
+        .btn-green {
+            background: linear-gradient(135deg, var(--green), #00a87e);
+            color: #000;
+            box-shadow: 0 4px 20px rgba(0, 212, 166, 0.4);
+        }
+
+        .btn-green:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0, 212, 166, 0.55);
+        }
+
+        .btn-outline {
+            border: 1.5px solid var(--border);
+            color: #fff;
+            background: transparent;
+        }
+
+        .btn-outline:hover {
+            border-color: var(--green);
+            color: var(--green);
+        }
+
+        /* Hero */
+        .hero {
+            padding: 70px 0 50px;
+            text-align: center;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0, 212, 166, 0.1);
+            border: 1px solid rgba(0, 212, 166, 0.25);
+            padding: 8px 18px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--green);
+            margin-bottom: 24px;
+            animation: fadeInUp 0.8s ease;
+        }
+
+        .hero-badge .dot {
+            width: 8px;
+            height: 8px;
+            background: var(--green);
+            border-radius: 50%;
+            animation: dotPulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes dotPulse {
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.4;
+                transform: scale(1.7);
+            }
+        }
+
+        .hero h1 {
+            font-size: clamp(2rem, 5vw, 3.4rem);
+            font-weight: 800;
+            letter-spacing: -1px;
+            line-height: 1.1;
+            margin-bottom: 14px;
+            animation: fadeInUp 0.8s ease 0.1s;
+        }
+
+        .hero h1 .gradient {
+            background: linear-gradient(135deg, var(--green-bright), var(--green));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: 1.1rem;
+            color: var(--text-dim);
+            max-width: 650px;
+            margin: 0 auto 30px;
+            animation: fadeInUp 0.8s ease 0.2s;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 14px;
+            justify-content: center;
+            flex-wrap: wrap;
+            animation: fadeInUp 0.8s ease 0.3s;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Секции */
+        section {
+            padding: 60px 0;
+        }
+
+        .section-label {
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--green);
+            margin-bottom: 10px;
+        }
+
+        .section-title {
+            font-size: clamp(1.7rem, 3.5vw, 2.3rem);
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 12px;
+        }
+
+        .section-subtitle {
+            color: var(--text-dim);
+            font-size: 1rem;
+            max-width: 600px;
+            margin-bottom: 36px;
+        }
+
+        /* Карточки */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 18px;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 28px 24px;
+            transition: var(--transition);
+        }
+
+        .card:hover {
+            background: var(--bg-card-hover);
+            border-color: #2a2a32;
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .card-icon {
+            font-size: 2rem;
+            margin-bottom: 14px;
+        }
+
+        .card h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .card p {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+        }
+
+        /* Таблицы */
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px;
+        }
+
+        th,
+        td {
+            padding: 14px 18px;
+            text-align: left;
+            font-size: 0.85rem;
+        }
+
+        th {
+            background: var(--bg-card);
+            font-weight: 700;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--green);
+        }
+
+        td {
+            border-top: 1px solid var(--border);
+            color: var(--text-dim);
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.015);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 50px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .badge-green {
+            background: rgba(0, 212, 166, 0.12);
+            color: var(--green);
+        }
+
+        .badge-gold {
+            background: rgba(212, 168, 67, 0.12);
+            color: var(--gold);
+        }
+
+        .badge-blue {
+            background: rgba(74, 158, 255, 0.12);
+            color: var(--blue);
+        }
+
+        /* Секция таймфреймов */
+        .tf-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+        }
+
+        .tf-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 28px 24px;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tf-card:hover {
+            background: var(--bg-card-hover);
+            border-color: #2a2a32;
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .tf-card.highlight {
+            border-color: rgba(0, 212, 166, 0.3);
+        }
+
+        .tf-card .tf-badge {
+            position: absolute;
+            top: 18px;
+            right: 18px;
+            background: rgba(0, 212, 166, 0.15);
+            color: var(--green);
+            padding: 4px 12px;
+            border-radius: 50px;
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+
+        .tf-card h3 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .tf-card .tf-subtitle {
+            color: var(--text-dim);
+            font-size: 0.85rem;
+            margin-bottom: 14px;
+        }
+
+        .tf-card .tf-freq {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--green);
+            letter-spacing: -1px;
+        }
+
+        .tf-card .tf-freq small {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-dim);
+        }
+
+        /* Сравнение */
+        .compare-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .compare-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 28px 24px;
+            text-align: center;
+            transition: var(--transition);
+        }
+
+        .compare-card.winner {
+            border-color: rgba(0, 212, 166, 0.4);
+            background: linear-gradient(135deg, rgba(0, 212, 166, 0.06), rgba(0, 212, 166, 0.01));
+            box-shadow: 0 8px 40px rgba(0, 212, 166, 0.1);
+        }
+
+        .compare-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .compare-card h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .compare-price {
+            font-size: 2.8rem;
+            font-weight: 800;
+            letter-spacing: -1px;
+            margin-bottom: 4px;
+        }
+
+        .compare-price.green {
+            color: var(--green);
+        }
+
+        .compare-price.dim {
+            color: var(--text-dim);
+        }
+
+        .compare-card ul {
+            list-style: none;
+            text-align: left;
+            margin-top: 16px;
+        }
+
+        .compare-card ul li {
+            padding: 5px 0;
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .compare-card ul li::before {
+            content: '✓';
+            color: var(--green);
+            font-weight: 700;
+        }
+
+        .compare-card ul li.missing::before {
+            content: '✗';
+            color: var(--red);
+        }
+
+        /* Футер */
+        footer {
+            border-top: 1px solid var(--border);
+            padding: 40px 0;
+            text-align: center;
+            color: var(--text-dim);
+            font-size: 0.85rem;
+        }
+
+        footer a {
+            color: var(--green);
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+        }
+
+        /* Адаптив */
+        @media (max-width: 768px) {
+            .header-inner {
+                flex-direction: column;
+                gap: 10px;
+            }
+            nav {
+                justify-content: center;
+                width: 100%;
+            }
+            nav a {
+                font-size: 0.78rem;
+                padding: 6px 10px;
+            }
+            .hero {
+                padding: 45px 0 30px;
+            }
+            .hero h1 {
+                font-size: 1.6rem;
+            }
+            section {
+                padding: 40px 0;
+            }
+            .section-title {
+                font-size: 1.3rem;
+            }
+            .cards-grid,
+            .tf-grid,
+            .compare-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 0 14px;
+            }
+            .hero h1 {
+                font-size: 1.35rem;
+            }
+            .hero p {
+                font-size: 0.9rem;
+            }
+            nav {
+                gap: 3px;
+            }
+            nav a {
+                font-size: 0.7rem;
+                padding: 5px 7px;
+            }
+            .btn {
+                padding: 9px 16px;
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-grid"></div>
+    <div class="bg-glow-top"></div>
+    <div class="bg-glow-bottom"></div>
+
+    <!-- Шапка -->
+    <header id="header">
+        <div class="container header-inner">
+            <a href="index.html" class="logo">
+                <div class="logo-icon">📊</div>
+                <div class="logo-text">Trade<span>All</span> Scanner</div>
+            </a>
+            <nav>
+                <a href="#scanner">Сканер</a>
+                <a href="#timeframes">Таймфреймы</a>
+                <a href="#compare">Сравнение</a>
+                <a href="#community">Комьюнити</a>
+                <a href="ranks.html">Звания</a>
+                <a href="index.html">Клуб</a>
+            </nav>
+            <a href="https://t.me/TradeAllPay_bot" target="_blank" class="btn btn-green">🚀 В бота</a>
+        </div>
+    </header>
+
+    <!-- Hero -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-badge">
+                <span class="dot"></span> Bybit Professional Scanner
+            </div>
+            <h1>AI-сканер для<br><span class="gradient">профессионального дейтрейдинга</span></h1>
+            <p>25+ индикаторов. 35+ стратегий. 15+ свечных паттернов. Сигналы с точностью от 70% до 100%. Соотношение риск/прибыль 1:2.5 и выше.</p>
+            <div class="hero-buttons">
+                <a href="https://t.me/TradeAllPay_bot" target="_blank" class="btn btn-green">📊 Получить доступ</a>
+                <a href="#compare" class="btn btn-outline">💰 Сравнить цены</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Ключевые характеристики -->
+    <section id="scanner">
+        <div class="container">
+            <div class="section-label">Сканер</div>
+            <h2 class="section-title">Ключевые характеристики</h2>
+            <p class="section-subtitle">Всё, что нужно для стабильного дейтрейдинга на Bybit.</p>
+            <div class="cards-grid">
+                <div class="card">
+                    <div class="card-icon">🎯</div>
+                    <h3>Точность 70–100%</h3>
+                    <p>Каждый сигнал проходит многоуровневую фильтрацию. Ensemble AI взвешивает 25+ индикаторов.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">📊</div>
+                    <h3>25+ индикаторов</h3>
+                    <p>Трендовые, осцилляторы, объемные, волатильности. Полный арсенал профессионального трейдера.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">🧠</div>
+                    <h3>AI-фильтрация</h3>
+                    <p>Ансамблевое голосование, корреляционный фильтр, адаптивный стоп-лосс. Никакого шума.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">🕯️</div>
+                    <h3>15+ свечных паттернов</h3>
+                    <p>Разворотные, продолжения тренда, доджи, маробозу. Автоматическое распознавание.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">🛡️</div>
+                    <h3>Риск-менеджмент</h3>
+                    <p>RR 1:2.5 минимум. Адаптивный SL на основе ATR. Дневной лимит 12 сделок и 5% просадки.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">📈</div>
+                    <h3>8 топовых пар</h3>
+                    <p>BTC, ETH, SOL, BNB, AVAX, MATIC, LINK, UNI. Только ликвидные активы Bybit.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Таймфреймы -->
+    <section id="timeframes">
+        <div class="container">
+            <div class="section-label">Таймфреймы</div>
+            <h2 class="section-title">Два режима сканирования</h2>
+            <p class="section-subtitle">Выбирай частоту сигналов под свой стиль торговли.</p>
+
+            <div class="tf-grid">
+                <div class="tf-card highlight">
+                    <div class="tf-badge">Быстрый</div>
+                    <h3>⚡ Скальпинг / Интрадей</h3>
+                    <div class="tf-subtitle">Таймфреймы: 5 мин · 15 мин · 1 час</div>
+                    <div class="tf-freq">Каждый час <small>новый сигнал</small></div>
+                    <p style="color:var(--text-dim);font-size:0.85rem;margin-top:8px;">Для активных трейдеров. Быстрые входы, частые сигналы. Младшие таймфреймы для точного входа, старший — для фильтрации направления.</p>
+                </div>
+                <div class="tf-card highlight">
+                    <div class="tf-badge">Надёжный</div>
+                    <h3>🔍 Свинг / Дейтрейдинг</h3>
+                    <div class="tf-subtitle">Таймфреймы: 1 час · 2 часа · 4 часа</div>
+                    <div class="tf-freq">Каждые 4 часа <small>новый сигнал</small></div>
+                    <p style="color:var(--text-dim);font-size:0.85rem;margin-top:8px;">Для уверенных входов. Три старших таймфрейма. Меньше сигналов — выше надёжность. Консенсус трёх таймфреймов.</p>
+                </div>
+            </div>
+
+            <div class="table-wrapper" style="margin-top:24px;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Параметр</th>
+                            <th>⚡ Скальпинг (5м/15м/1ч)</th>
+                            <th>🔍 Дейтрейдинг (1ч/2ч/4ч)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Частота сигналов</td><td><span class="badge badge-green">Каждый час</span></td><td><span class="badge badge-blue">Каждые 4 часа</span></td></tr>
+                        <tr><td>Стиль торговли</td><td>Интрадей, скальпинг</td><td>Дейтрейдинг, свинг</td></tr>
+                        <tr><td>Количество сигналов в день</td><td>До 12</td><td>До 6</td></tr>
+                        <tr><td>Надёжность</td><td>Высокая</td><td>Максимальная</td></tr>
+                        <tr><td>MTF Консенсус</td><td>2 из 3 таймфреймов</td><td>3 из 3 таймфреймов</td></tr>
+                        <tr><td>Лимит сделок в день</td><td>12</td><td>6</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- Индикаторы и стратегии -->
+    <section>
+        <div class="container">
+            <div class="section-label">Технология</div>
+            <h2 class="section-title">Индикаторы и стратегии</h2>
+            <p class="section-subtitle">Полный арсенал профессионального трейдера в одном боте.</p>
+
+            <div class="cards-grid">
+                <div class="card">
+                    <div class="card-icon">📊</div>
+                    <h3>Трендовые</h3>
+                    <p>EMA (9 шт., числа Фибоначчи), SMA, HMA, TEMA, MACD, ADX, SuperTrend, Vortex.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">🌀</div>
+                    <h3>Осцилляторы</h3>
+                    <p>RSI, Stochastic, Stochastic RSI, CCI, Ultimate Oscillator, Williams %R, Awesome Oscillator.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">📦</div>
+                    <h3>Объёмные</h3>
+                    <p>OBV, Volume SMA, Volume Weighted RSI, CMF, Accumulation/Distribution, Volume Profile.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">📉</div>
+                    <h3>Волатильность</h3>
+                    <p>Bollinger Bands (3 настройки), Keltner Channels, Donchian Channels, ATR, Historical Volatility.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">🧠</div>
+                    <h3>Продвинутые</h3>
+                    <p>VWAP + Z-score, Fibonacci, Kalman Filter, Linear Regression, Elder's Force Index, Choppiness.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">⚡</div>
+                    <h3>Дивергенции</h3>
+                    <p>Автообнаружение: RSI, MACD, OBV, MFI, Stochastic. Множественные дивергенции — самый сильный сигнал.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Сравнение цен -->
+    <section id="compare">
+        <div class="container">
+            <div class="section-label">Цены</div>
+            <h2 class="section-title">Почему TradeAll Scanner</h2>
+            <p class="section-subtitle">Качество профессионального сканера за цену чашки кофе в месяц.</p>
+
+            <div class="compare-grid">
+                <div class="compare-card">
+                    <h3>Другие сканеры</h3>
+                    <div class="compare-price dim">50–200$</div>
+                    <p style="color:var(--text-dim);">в месяц</p>
+                    <ul>
+                        <li>5–10 индикаторов</li>
+                        <li class="missing">AI-фильтрация</li>
+                        <li class="missing">MTF консенсус</li>
+                        <li class="missing">35+ стратегий</li>
+                        <li class="missing">Визуальные графики</li>
+                        <li class="missing">Комьюнити и поддержка</li>
+                    </ul>
+                </div>
+                <div class="compare-card winner">
+                    <h3>TradeAll Scanner</h3>
+                    <div class="compare-price green">25$</div>
+                    <p style="color:var(--green);">в месяц (в составе клуба)</p>
+                    <ul>
+                        <li>25+ индикаторов</li>
+                        <li>Ensemble AI + корреляционный фильтр</li>
+                        <li>3 таймфрейма одновременно</li>
+                        <li>35+ стратегий + SuperStrategy</li>
+                        <li>Графики с аннотациями</li>
+                        <li>Закрытое комьюнити, обучение, поддержка</li>
+                    </ul>
+                    <a href="https://t.me/TradeAllPay_bot" target="_blank" class="btn btn-green" style="margin-top:16px;width:100%;justify-content:center;">💎 Попробовать за 3$</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Комьюнити -->
+    <section id="community">
+        <div class="container">
+            <div class="section-label">Комьюнити</div>
+            <h2 class="section-title">Больше чем просто сканер</h2>
+            <p class="section-subtitle">Ты получаешь не только сигналы. Ты получаешь среду для роста.</p>
+
+            <div class="cards-grid">
+                <div class="card">
+                    <div class="card-icon">👥</div>
+                    <h3>Закрытое комьюнити</h3>
+                    <p>Чат без токсиков. Разборы сделок. Поддержка 24/7. Обучение с нуля до профита.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">🏆</div>
+                    <h3>Система званий</h3>
+                    <p>10 уровней. Опыт за активность. Билеты к розыгрышу. Статус в чате.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">🎰</div>
+                    <h3>Еженедельный розыгрыш</h3>
+                    <p>Призы: дни подписки. Билеты копятся за рефералов, достижения и звания.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">👤</div>
+                    <h3>Реферальная программа</h3>
+                    <p>+3 дня за пробник друга. +7 дней за полную подписку друга. Дни продлевают твою подписку.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Футер -->
+    <footer>
+        <div class="container">
+            <div class="footer-links">
+                <a href="https://t.me/TradeAllPay_bot" target="_blank">Бот</a>
+                <a href="https://t.me/TradeAll_links" target="_blank">Бесплатный канал</a>
+                <a href="https://t.me/TradeAll_Support" target="_blank">Поддержка</a>
+                <a href="index.html">TradeAll Club</a>
+                <a href="ranks.html">Звания</a>
+            </div>
+            <p>© 2026 TradeAll Scanner. Все права защищены.</p>
+            <p style="font-size:0.7rem;margin-top:4px;">Трейдинг сопряжён с риском потери капитала. Сигналы являются аналитическим инструментом, а не финансовой рекомендацией. Все решения ты принимаешь самостоятельно.</p>
+        </div>
+    </footer>
+
+    <script>
+        const header = document.getElementById('header');
+        window.addEventListener('scroll', () => {
+            header.classList.toggle('scrolled', window.scrollY > 50);
+        });
+
+        document.querySelectorAll('a[href^="#"]').forEach(link => {
+            link.addEventListener('click', function(e) {
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    e.preventDefault();
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, { threshold: 0.15 });
+
+        document.querySelectorAll('.card, .tf-card, .compare-card').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(30px)';
+            el.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+            observer.observe(el);
+        });
+
+        setTimeout(() => {
+            document.querySelectorAll('.card, .tf-card, .compare-card').forEach(el => {
+                const rect = el.getBoundingClientRect();
+                if (rect.top < window.innerHeight) {
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
+                }
+            });
+        }, 200);
+    </script>
+</body>
+</html>

@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TradeAll — Закрытый клуб трейдеров | Сигналы, бот, комьюнити</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎯</text></svg>">
+    <style>
+        :root {
+            --bg: #0a0a0c;
+            --bg-card: #111115;
+            --bg-card-hover: #181a20;
+            --gold: #d4a843;
+            --gold-light: #f0cc6a;
+            --green: #00d4a6;
+            --red: #ff4757;
+            --text: #e0e0e0;
+            --text-dim: #8a8a8a;
+            --border: #1e1e24;
+            --radius: 16px;
+            --radius-sm: 10px;
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Анимированный фон */
+        .bg-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+            background-size: 60px 60px;
+            animation: gridPulse 8s ease-in-out infinite;
+        }
+
+        @keyframes gridPulse {
+            0%,
+            100% {
+                opacity: 0.5;
+            }
+            50% {
+                opacity: 1;
+            }
+        }
+
+        .bg-glow {
+            position: fixed;
+            top: -300px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 800px;
+            height: 600px;
+            background: radial-gradient(ellipse at center, rgba(212, 168, 67, 0.08) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+            animation: glowFloat 6s ease-in-out infinite;
+        }
+
+        @keyframes glowFloat {
+            0%,
+            100% {
+                transform: translateX(-50%) translateY(0);
+            }
+            50% {
+                transform: translateX(-50%) translateY(30px);
+            }
+        }
+
+        /* Контейнер */
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Шапка */
+        header {
+            padding: 20px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            background: rgba(10, 10, 12, 0.85);
+            border-bottom: 1px solid var(--border);
+            transition: var(--transition);
+        }
+
+        header.scrolled {
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .header-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, var(--gold), #b8902e);
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            box-shadow: 0 4px 20px rgba(212, 168, 67, 0.3);
+        }
+
+        .logo-text {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: -0.5px;
+        }
+
+        .logo-text span {
+            color: var(--gold);
+        }
+
+        nav {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        nav a {
+            color: var(--text-dim);
+            text-decoration: none;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: var(--transition);
+            white-space: nowrap;
+        }
+
+        nav a:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            text-decoration: none;
+            cursor: pointer;
+            border: none;
+            transition: var(--transition);
+            white-space: nowrap;
+        }
+
+        .btn-gold {
+            background: linear-gradient(135deg, var(--gold), #c4963a);
+            color: #000;
+            box-shadow: 0 4px 20px rgba(212, 168, 67, 0.4);
+        }
+
+        .btn-gold:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(212, 168, 67, 0.55);
+        }
+
+        .btn-outline {
+            border: 1.5px solid var(--border);
+            color: #fff;
+            background: transparent;
+        }
+
+        .btn-outline:hover {
+            border-color: var(--gold);
+            color: var(--gold);
+            background: rgba(212, 168, 67, 0.05);
+        }
+
+        /* Hero */
+        .hero {
+            padding: 80px 0 60px;
+            text-align: center;
+            position: relative;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0, 212, 166, 0.1);
+            border: 1px solid rgba(0, 212, 166, 0.25);
+            padding: 8px 18px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--green);
+            margin-bottom: 28px;
+            animation: fadeInUp 0.8s ease;
+        }
+
+        .hero-badge .dot {
+            width: 8px;
+            height: 8px;
+            background: var(--green);
+            border-radius: 50%;
+            animation: dotPulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes dotPulse {
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.5;
+                transform: scale(1.6);
+            }
+        }
+
+        .hero h1 {
+            font-size: clamp(2.2rem, 5vw, 3.6rem);
+            font-weight: 800;
+            letter-spacing: -1px;
+            line-height: 1.15;
+            margin-bottom: 16px;
+            animation: fadeInUp 0.8s ease 0.1s;
+        }
+
+        .hero h1 .gold {
+            background: linear-gradient(135deg, var(--gold-light), var(--gold));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: 1.15rem;
+            color: var(--text-dim);
+            max-width: 600px;
+            margin: 0 auto 36px;
+            animation: fadeInUp 0.8s ease 0.2s;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 14px;
+            justify-content: center;
+            flex-wrap: wrap;
+            animation: fadeInUp 0.8s ease 0.3s;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Секции */
+        section {
+            padding: 70px 0;
+        }
+
+        .section-label {
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--gold);
+            margin-bottom: 12px;
+        }
+
+        .section-title {
+            font-size: clamp(1.8rem, 3.5vw, 2.4rem);
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 16px;
+        }
+
+        .section-subtitle {
+            color: var(--text-dim);
+            font-size: 1.05rem;
+            max-width: 600px;
+            margin-bottom: 40px;
+        }
+
+        /* Карточки преимуществ */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 32px 28px;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            background: var(--bg-card-hover);
+            border-color: #2a2a32;
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .card-icon {
+            font-size: 2.2rem;
+            margin-bottom: 18px;
+            display: block;
+        }
+
+        .card h3 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .card p {
+            color: var(--text-dim);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        /* Карточка цены */
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .pricing-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 36px 28px;
+            text-align: center;
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .pricing-card.featured {
+            border-color: var(--gold);
+            background: linear-gradient(135deg, rgba(212, 168, 67, 0.08), rgba(212, 168, 67, 0.02));
+            box-shadow: 0 8px 40px rgba(212, 168, 67, 0.15);
+        }
+
+        .pricing-card.featured::before {
+            content: 'Популярный';
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--gold);
+            color: #000;
+            padding: 4px 16px;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .pricing-emoji {
+            font-size: 2.6rem;
+            margin-bottom: 12px;
+        }
+
+        .pricing-price {
+            font-size: 2.6rem;
+            font-weight: 800;
+            letter-spacing: -1px;
+            margin-bottom: 4px;
+        }
+
+        .pricing-price span {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-dim);
+        }
+
+        .pricing-period {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+
+        .pricing-features {
+            list-style: none;
+            text-align: left;
+            margin-bottom: 24px;
+        }
+
+        .pricing-features li {
+            padding: 6px 0;
+            font-size: 0.9rem;
+            color: var(--text-dim);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .pricing-features li::before {
+            content: '✓';
+            color: var(--green);
+            font-weight: 700;
+        }
+
+        /* Таблица */
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px;
+        }
+
+        th,
+        td {
+            padding: 16px 20px;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+
+        th {
+            background: var(--bg-card);
+            font-weight: 700;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--gold);
+        }
+
+        td {
+            border-top: 1px solid var(--border);
+            color: var(--text-dim);
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.015);
+        }
+
+        /* FAQ */
+        .faq-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            margin-bottom: 12px;
+            overflow: hidden;
+            transition: var(--transition);
+        }
+
+        .faq-item:hover {
+            border-color: #2a2a32;
+        }
+
+        .faq-question {
+            padding: 18px 22px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+        }
+
+        .faq-arrow {
+            transition: transform 0.3s ease;
+            font-size: 0.8rem;
+        }
+
+        .faq-item.open .faq-arrow {
+            transform: rotate(180deg);
+        }
+
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+        }
+
+        .faq-item.open .faq-answer {
+            max-height: 500px;
+        }
+
+        .faq-answer-inner {
+            padding: 0 22px 18px;
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            line-height: 1.7;
+        }
+
+        /* Футер */
+        footer {
+            border-top: 1px solid var(--border);
+            padding: 40px 0;
+            text-align: center;
+            color: var(--text-dim);
+            font-size: 0.85rem;
+        }
+
+        footer a {
+            color: var(--gold);
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        /* Адаптив */
+        @media (max-width: 768px) {
+            .header-inner {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            nav {
+                justify-content: center;
+                width: 100%;
+            }
+
+            nav a {
+                font-size: 0.8rem;
+                padding: 6px 10px;
+            }
+
+            .hero {
+                padding: 50px 0 40px;
+            }
+
+            .hero h1 {
+                font-size: 1.8rem;
+            }
+
+            .hero p {
+                font-size: 1rem;
+            }
+
+            section {
+                padding: 40px 0;
+            }
+
+            .section-title {
+                font-size: 1.5rem;
+            }
+
+            .cards-grid,
+            .pricing-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .btn {
+                padding: 10px 18px;
+                font-size: 0.85rem;
+            }
+
+            .pricing-card.featured::before {
+                font-size: 0.7rem;
+                padding: 3px 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 0 16px;
+            }
+
+            .hero h1 {
+                font-size: 1.5rem;
+            }
+
+            .hero-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .hero-buttons .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            nav {
+                gap: 4px;
+            }
+
+            nav a {
+                font-size: 0.75rem;
+                padding: 5px 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-grid"></div>
+    <div class="bg-glow"></div>
+
+    <!-- Шапка -->
+    <header id="header">
+        <div class="container header-inner">
+            <a href="#" class="logo">
+                <div class="logo-icon">🎯</div>
+                <div class="logo-text">Trade<span>All</span></div>
+            </a>
+            <nav>
+                <a href="#advantages">Преимущества</a>
+                <a href="#pricing">Цены</a>
+                <a href="#bot">Бот</a>
+                <a href="#rules">Правила</a>
+                <a href="#faq">FAQ</a>
+                <a href="#docs">Документы</a>
+            </nav>
+            <a href="https://t.me/TradeAllPay_bot" target="_blank" class="btn btn-gold">💎 В бота</a>
+        </div>
+    </header>
+
+    <!-- Hero -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-badge">
+                <span class="dot"></span> Закрытое комьюнити трейдеров
+            </div>
+            <h1>Точные сигналы.<br>Живое комьюнити.<br><span class="gold">Реальный профит.</span></h1>
+            <p>Бот анализирует рынок фьючерсов 24/7. Винрейт 80%+. Обучение с нуля. Закрытый чат без токсиков. Пробный период — 3$.</p>
+            <div class="hero-buttons">
+                <a href="https://t.me/TradeAllPay_bot" target="_blank" class="btn btn-gold">🚀 Попробовать за 3$</a>
+                <a href="https://t.me/TradeAll_links" target="_blank" class="btn btn-outline">📢 Бесплатный канал</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Преимущества -->
+    <section id="advantages">
+        <div class="container">
+            <div class="section-label">Почему TradeAll</div>
+            <h2 class="section-title">Что ты получаешь</h2>
+            <p class="section-subtitle">Всё, что нужно для стабильного профита на фьючерсах — в одном месте.</p>
+            <div class="cards-grid">
+                <div class="card">
+                    <span class="card-icon">🎯</span>
+                    <h3>Точные сигналы</h3>
+                    <p>Бот анализирует рынок 24/7 и выдаёт сигналы с точностью 80%+. Только вход, стоп и тейк. Никакой воды.</p>
+                </div>
+                <div class="card">
+                    <span class="card-icon">🤖</span>
+                    <h3>Умный бот</h3>
+                    <p>Алгоритм на основе ИИ считает рыночные данные. Не гадает — рассчитывает. Работает пока ты спишь.</p>
+                </div>
+                <div class="card">
+                    <span class="card-icon">👥</span>
+                    <h3>Комьюнити</h3>
+                    <p>Чат без токсичности. Поддержка 24/7. Разборы сделок. Обучение с нуля до первой прибыли.</p>
+                </div>
+                <div class="card">
+                    <span class="card-icon">📚</span>
+                    <h3>База знаний</h3>
+                    <p>Гайды по фьючерсам, стратегии, риск-менеджмент. Всё структурировано в одном месте.</p>
+                </div>
+                <div class="card">
+                    <span class="card-icon">🏆</span>
+                    <h3>Рейтинг и розыгрыши</h3>
+                    <p>Зарабатывай опыт, повышай уровень, получай призы. Еженедельные розыгрыши дней подписки.</p>
+                </div>
+                <div class="card">
+                    <span class="card-icon">🔐</span>
+                    <h3>Одноразовые ссылки</h3>
+                    <p>Каждый получает персональную ссылку в клуб. Доступ защищён от слива.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Цены -->
+    <section id="pricing">
+        <div class="container">
+            <div class="section-label">Тарифы</div>
+            <h2 class="section-title">Начни с копеек</h2>
+            <p class="section-subtitle">Попробуй за 3$, потом реши — оставаться или нет.</p>
+            <div class="pricing-grid">
+                <div class="pricing-card">
+                    <div class="pricing-emoji">🔑</div>
+                    <div class="pricing-price">3$ <span>USDT</span></div>
+                    <div class="pricing-period">пробный период на 3 дня</div>
+                    <ul class="pricing-features">
+                        <li>Доступ в закрытый канал</li>
+                        <li>1–2 точных сигнала</li>
+                        <li>Чат с поддержкой</li>
+                        <li>База знаний</li>
+                    </ul>
+                    <a href="https://t.me/TradeAllPay_bot" target="_blank" class="btn btn-outline" style="width:100%;justify-content:center;">Попробовать</a>
+                </div>
+                <div class="pricing-card featured">
+                    <div class="pricing-emoji">💎</div>
+                    <div class="pricing-price">25$ <span>USDT</span></div>
+                    <div class="pricing-period">полный доступ на 30 дней</div>
+                    <ul class="pricing-features">
+                        <li>Все сигналы без ограничений</li>
+                        <li>Бот с уведомлениями</li>
+                        <li>Закрытый чат 24/7</li>
+                        <li>Обучение с нуля</li>
+                        <li>Рейтинг, уровни, розыгрыши</li>
+                        <li>Реферальная программа</li>
+                    </ul>
+                    <a href="https://t.me/TradeAllPay_bot" target="_blank" class="btn btn-gold" style="width:100%;justify-content:center;">Оформить подписку</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Бот -->
+    <section id="bot">
+        <div class="container">
+            <div class="section-label">Технология</div>
+            <h2 class="section-title">Бот, который считает рынок</h2>
+            <p class="section-subtitle">Никакой магии. Только алгоритмы, данные и точные расчёты.</p>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Характеристика</th>
+                            <th>Значение</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Тип анализа</td><td>Технический + ИИ-модель</td></tr>
+                        <tr><td>Рынки</td><td>Фьючерсы (BTC, ETH, SOL и др.)</td></tr>
+                        <tr><td>Винрейт</td><td>80%+ (исторические данные)</td></tr>
+                        <tr><td>Режим работы</td><td>24/7 без перерывов</td></tr>
+                        <tr><td>Формат сигнала</td><td>Вход, стоп-лосс, тейк-профит</td></tr>
+                        <tr><td>Уведомления</td><td>Мгновенные в Telegram</td></tr>
+                        <tr><td>Риск-менеджмент</td><td>Рекомендуемый объём позиции</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- Правила -->
+    <section id="rules">
+        <div class="container">
+            <div class="section-label">Дисциплина</div>
+            <h2 class="section-title">Правила клуба</h2>
+            <p class="section-subtitle">Мы за здоровую атмосферу. Нарушители наказываются.</p>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Нарушение</th>
+                            <th>Санкция</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>🚫 Реклама, спам</td><td>Чёрный список</td></tr>
+                        <tr><td>🚫 Оскорбления, токсичность</td><td>Чёрный список</td></tr>
+                        <tr><td>🚫 Скам, мошенничество</td><td>Бан навсегда без права разблокировки</td></tr>
+                        <tr><td>🚫 Слив контента клуба</td><td>Чёрный список</td></tr>
+                        <tr><td>🚫 Флуд в сигналах</td><td>Предупреждение → бан</td></tr>
+                        <tr><td>🔓 1-я разблокировка</td><td>Штраф 100$</td></tr>
+                        <tr><td>🔓 2-я разблокировка</td><td>Штраф 200$</td></tr>
+                        <tr><td>❌ 3-е нарушение</td><td>Бан навсегда без возврата</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ -->
+    <section id="faq">
+        <div class="container">
+            <div class="section-label">Вопросы</div>
+            <h2 class="section-title">Часто спрашивают</h2>
+            <p class="section-subtitle">Быстрые ответы на популярные вопросы.</p>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFAQ(this)">Как оплатить пробный период? <span class="faq-arrow">▾</span></div>
+                <div class="faq-answer"><div class="faq-answer-inner">Зайди в бота @TradeAll_bot, нажми «Пробный период», отправь ровно указанную сумму в USDT (TON или TRC20) и нажми «Проверить». Бот автоматически выдаст доступ.</div></div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFAQ(this)">Бот реально даёт 80%+ винрейт? <span class="faq-arrow">▾</span></div>
+                <div class="faq-answer"><div class="faq-answer-inner">Да, на исторических данных точность выше 80%. Но это не гарантия будущих результатов. Бот — это инструмент анализа, а не кнопка «бабло». Все сделки — на твой страх и риск.</div></div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFAQ(this)">Я новичок. Мне помогут? <span class="faq-arrow">▾</span></div>
+                <div class="faq-answer"><div class="faq-answer-inner">Да. В клубе есть раздел «Обучение» с гайдами от нуля до первой сделки. В чате поддержки тебе ответят на любой вопрос. Мы не бросаем новичков.</div></div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFAQ(this)">Как работает реферальная программа? <span class="faq-arrow">▾</span></div>
+                <div class="faq-answer"><div class="faq-answer-inner">Приглашай друзей по своей ссылке. За регистрацию получишь +3 дня подписки, за оплату другом — +7 дней. Накопленные дни можно обменять на USDT.</div></div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFAQ(this)">Что будет если нарушить правила? <span class="faq-arrow">▾</span></div>
+                <div class="faq-answer"><div class="faq-answer-inner">Первое нарушение — чёрный список. Разблокировка стоит 100$. Второе — 200$. Третье — бан навсегда без возврата. Грубые нарушения (скам) — мгновенный бан без права восстановления.</div></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Документы -->
+    <section id="docs">
+        <div class="container">
+            <div class="section-label">Юридическая информация</div>
+            <h2 class="section-title">Документы</h2>
+            <p class="section-subtitle">Полные условия использования и политика конфиденциальности.</p>
+            <div class="cards-grid" style="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));">
+                <a href="https://tradeallpay.github.io/tradeall/terms_ru" target="_blank" style="text-decoration:none;">
+                    <div class="card" style="cursor:pointer;">
+                        <span class="card-icon">📄</span>
+                        <h3>Условия использования</h3>
+                        <p>Права и обязанности сторон. Риски. Ограничение ответственности.</p>
+                    </div>
+                </a>
+                <a href="https://tradeallpay.github.io/tradeall/privacy_ru" target="_blank" style="text-decoration:none;">
+                    <div class="card" style="cursor:pointer;">
+                        <span class="card-icon">🔒</span>
+                        <h3>Политика конфиденциальности</h3>
+                        <p>Какие данные мы не собираем. Как защищена твоя информация.</p>
+                    </div>
+                </a>
+                <a href="https://tradeallpay.github.io/tradeall/referral" target="_blank" style="text-decoration:none;">
+                    <div class="card" style="cursor:pointer;">
+                        <span class="card-icon">🌐</span>
+                        <h3>Реферальная система</h3>
+                        <p>О реферальной системе внутри клуба.</p>
+                    </div>
+                </a>
+                <a href="bot_prems.html" target="_blank" style="text-decoration:none;">
+                    <div class="card" style="cursor:pointer;">
+                        <span class="card-icon">🛡️</span>
+                        <h3>Преимущества нашего бота</h3>
+                        <p>Почему стоит выбрать именно нашего бота и как он работает.</p>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Футер -->
+    <footer>
+        <div class="container">
+            <div class="footer-links">
+                <a href="https://t.me/TradeAllPay_bot" target="_blank">Бот</a>
+                <a href="https://t.me/TradeAll_links" target="_blank">Бесплатный канал</a>
+                <a href="https://t.me/TradeAll_Support" target="_blank">Поддержка</a>
+                <a href="https://tradeallpay.github.io/tradeall/rules">Правила</a>
+            </div>
+            <p>© 2026 TradeAll. Все права защищены.</p>
+            <p style="font-size:0.75rem;margin-top:6px;">Трейдинг сопряжён с риском потери капитала. Сигналы не являются финансовой рекомендацией.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Плавная анимация хедера при скролле
+        const header = document.getElementById('header');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
+
+        // FAQ аккордеон
+        function toggleFAQ(el) {
+            const item = el.parentElement;
+            const isOpen = item.classList.contains('open');
+            // Закрываем все
+            document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+            // Открываем текущий, если был закрыт
+            if (!isOpen) {
+                item.classList.add('open');
+            }
+        }
+
+        // Плавный скролл для всех якорных ссылок
+        document.querySelectorAll('a[href^="#"]').forEach(link => {
+            link.addEventListener('click', function(e) {
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    e.preventDefault();
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+
+        // Анимация появления карточек при скролле
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, { threshold: 0.15 });
+
+        document.querySelectorAll('.card, .pricing-card').forEach(card => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(30px)';
+            card.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+            observer.observe(card);
+        });
+
+        // Начальная анимация карточек в зоне видимости
+        setTimeout(() => {
+            document.querySelectorAll('.card, .pricing-card').forEach(card => {
+                const rect = card.getBoundingClientRect();
+                if (rect.top < window.innerHeight) {
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }
+            });
+        }, 200);
+    </script>
+</body>
+</html>
